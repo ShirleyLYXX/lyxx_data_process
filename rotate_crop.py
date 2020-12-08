@@ -97,7 +97,7 @@ def ReadTxt(directory, imageName, last):
             pt3 = [int(float(items[4])), int(float(items[5]))]
             pt2 = [int(float(items[6])), int(float(items[7]))]
 
-            rotate(imgSrc, pt1, pt2, pt3, pt4, os.path.join('tyre_rename_modified_deleted_label_cropped/images', saveName))
+            rotate(imgSrc, pt1, pt2, pt3, pt4, os.path.join('/home/workspace/lyxx_data_process/final_test_11tire_1207/crop_images', saveName))
             # cv2.imwrite('imgs_rotated/' + str(i) + '_' + saveName, rotated_img)
         else:
             #print(int(float(items[1])), int(float(items[3])), int(float(items[0])), int(float(items[2])))
@@ -117,11 +117,61 @@ def ReadTxt(directory, imageName, last):
                 print("Wrong!!!%s" % imageName)
                 continue
             #imgOut = imgSrc[int(float(items[1])):int(float(items[3])),int(float(items[0])):int(float(items[2]))]
-            cv2.imwrite(os.path.join('tyre_rename_modified_deleted_label_cropped/images', saveName), imgOut)
+            cv2.imwrite(os.path.join('/home/workspace/lyxx_data_process/final_test_11tire_1207/crop_images', saveName), imgOut)
  
- 
+ #　读出文件中的坐标值
+def ReadTxt_withlabel(directory, imageName, last):
+    img_suffix = ['.png', '.jpg', '.jpeg']
+    flag = 0
+    for suffix in img_suffix:
+        if os.path.exists(os.path.join(directory, imageName + suffix)):
+            imageName += suffix
+            flag = 1
+            break
+    if flag==0:
+        print("There is no %s" % imageName)
+    #print(imageName)
+    fileTxt = last  # txt文件名
+    getTxt = open(fileTxt, 'r')  # 打开txt文件
+    lines = getTxt.readlines()
+    length = len(lines)
+    for i in range(0, length):
+        imgSrc = cv2.imread(os.path.join(directory, imageName))
+        saveName = imageName.split('.')[0] + '_' + str(i) + '.png'
+        items = lines[i].strip().split(',')
+        if len(items) > 8:
+            assert len(items) == 9
+            if items[8] == '-1': # continue
+                continue
+            pt1 = [int(float(items[0])), int(float(items[1]))]
+            pt4 = [int(float(items[2])), int(float(items[3]))]
+            pt3 = [int(float(items[4])), int(float(items[5]))]
+            pt2 = [int(float(items[6])), int(float(items[7]))]
+
+            rotate(imgSrc, pt1, pt2, pt3, pt4, os.path.join('/home/workspace/lyxx_data_process/final_test_11tire_1207/crop_images', saveName))
+            # cv2.imwrite('imgs_rotated/' + str(i) + '_' + saveName, rotated_img)
+        else:
+            #print(int(float(items[1])), int(float(items[3])), int(float(items[0])), int(float(items[2])))
+            assert len(items) == 5
+            if items[4] == '-1':
+                continue
+            items_ = list(float(items[i]) for i in range(len(items)-1))
+            for j in range(len(items_)):
+                if items_[j] < 0:
+                    items_[j] = 0.0
+                    print("0.0!!!%s" % saveName)
+            items_ = [[items_[0], items_[1]], [items_[2], items_[3]]]
+            x,y,w,h = cv2.boundingRect(np.float32(np.array(items_)))
+            try:
+                imgOut = imgSrc[y:y+h, x:x+w]
+            except:
+                print("Wrong!!!%s" % imageName)
+                continue
+            #imgOut = imgSrc[int(float(items[1])):int(float(items[3])),int(float(items[0])):int(float(items[2]))]
+            cv2.imwrite(os.path.join('/home/workspace/lyxx_data_process/final_test_11tire_1207/crop_images', saveName), imgOut)
+
 if __name__=="__main__":
-    directory = "tyre_rename_modified_deleted_label"
+    directory = "/home/workspace/lyxx_data_process/final_test_11tire_1207/origin"
     #last = 'DOT%TR-BF-KM3#4__319.txt'
     #imageName = "DOT%TR-BF-KM3#4__319.jpeg"
     for file in tqdm(os.listdir(os.path.join(directory, 'labelTxt'))):

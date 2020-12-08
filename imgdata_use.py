@@ -90,6 +90,7 @@ def tyre_division(path,ori_label,save_path,seed=1):
         name=os.path.splitext(file)[0]
         file_dic=label_pd.loc[lambda x:x["name"]==name].iloc[0,]
         line=file_dic["line"]
+        
         label=file_dic["label"]
         if ")" in label or "(" in label or "_" in label:
             continue
@@ -111,6 +112,8 @@ def dot_crop(img_path, result_txt, save_path):
         os.makedirs(save_path + "/images")
     if not os.path.exists(save_path + "/labelTxt"):
         os.makedirs(save_path + "/labelTxt")
+    all_txt = open(os.path.join(save_path, 'label.txt'), 'w', encoding='utf-8')
+
     label_pd = cutil.label_tyre(result_txt)
     outlabelpath = save_path + "/labelTxt"
     for file in tqdm(os.listdir(img_path)):
@@ -157,8 +160,7 @@ def dot_crop(img_path, result_txt, save_path):
             if match:
                 #print(match.group())
                 dot_cord = cord
-                dot_w = dot_cord[2] - dot_cord[0]
-                dot_h = dot_cord[3] - dot_cord[1]
+                dot_label = item["kind"]
             
             all_cord.append(cord)
 
@@ -172,6 +174,8 @@ def dot_crop(img_path, result_txt, save_path):
                         [dot_cord[4],dot_cord[5]],[dot_cord[6],dot_cord[7]])
             dot_cord = rotate_points(rotateMat, [dot_cord[0],dot_cord[1]],[dot_cord[2],dot_cord[3]],[dot_cord[4],dot_cord[5]],[dot_cord[6],dot_cord[7]])
             dot_cord = cutil.min_max_get(dot_cord, ratio=ratio)
+            dot_w = dot_cord[2] - dot_cord[0]
+            dot_h = dot_cord[3] - dot_cord[1]
             for cord_ in range(len(all_cord)):
                 all_cord[cord_] = rotate_points(rotateMat, [all_cord[cord_][0],all_cord[cord_][1]],[all_cord[cord_][2],all_cord[cord_][3]],
                         [all_cord[cord_][4],all_cord[cord_][5]],[all_cord[cord_][6],all_cord[cord_][7]])
@@ -204,26 +208,32 @@ def dot_crop(img_path, result_txt, save_path):
             subimgname = name + "_up_" + str(dot_cord[0]) + '_' + str(up)
             cutil.savepatches(objects, subimgname, dot_cord[0], up, dot_cord[2], dot_cord[3], outlabelpath, rate=1)
             cv2.imwrite(os.path.join(save_path+"/images", subimgname + ".png"),img_roi_up)
+            all_txt.write(subimgname + '.png ' + dot_label + '\n')
             # ------------ increase the down boundry -----------
             img_roi_down = imgRotation[dot_cord[1]:down, dot_cord[0]:dot_cord[2]]
             subimgname = name + "_down_" + str(dot_cord[0]) + '_' + str(dot_cord[1])
             cutil.savepatches(objects, subimgname, dot_cord[0], dot_cord[1], dot_cord[2], down, outlabelpath, rate=1)
             cv2.imwrite(os.path.join(save_path+"/images", subimgname + ".png"),img_roi_down)
+            all_txt.write(subimgname + '.png ' + dot_label + '\n')
             # ------------ increase the left boundry -----------
             img_roi_left = imgRotation[dot_cord[1]:dot_cord[3], left:dot_cord[2]]
             subimgname = name + "_left_" + str(left) + '_' + str(dot_cord[1])
             cutil.savepatches(objects, subimgname, left, dot_cord[1], dot_cord[2], dot_cord[3], outlabelpath, rate=1)
             cv2.imwrite(os.path.join(save_path+"/images", subimgname + ".png"),img_roi_left)
+            all_txt.write(subimgname + '.png ' + dot_label + '\n')
             # ------------ increase the right boundry -----------
             img_roi_right = imgRotation[dot_cord[1]:dot_cord[3], dot_cord[0]:right]
             subimgname = name + "_right_" + str(dot_cord[0]) + '_' + str(dot_cord[1])
             cutil.savepatches(objects, subimgname, dot_cord[0], dot_cord[1], right, dot_cord[3], outlabelpath, rate=1)
             cv2.imwrite(os.path.join(save_path+"/images", subimgname + ".png"),img_roi_right)
+            all_txt.write(subimgname + '.png ' + dot_label + '\n')
             # ------------ increase all around boundry -----------
             img_roi_all = imgRotation[up:down, left:right]
             subimgname = name + "_around_" + str(left) + '_' + str(up)
             cutil.savepatches(objects, subimgname, left, up, right, down, outlabelpath, rate=1)
             cv2.imwrite(os.path.join(save_path+"/images", subimgname + ".png"),img_roi_all)
+            all_txt.write(subimgname + '.png ' + dot_label + '\n')
+    all_txt.close()
 
             # num+=1
 def choose_56(img_path,label_path,save_path):
@@ -287,6 +297,8 @@ if __name__=="__main__":
     workspace = "/home/workspace/lyxx_data_process/"
     dot_crop(img_path=workspace + "tyre_rename_modified_deleted_label",
     result_txt = workspace + "tyre_rename_modified_deleted_label/labelTxt",
+    # dot_crop(img_path=workspace + "tyre_debug",
+    # result_txt = workspace + "tyre_debug/labelTxt",
     save_path = workspace + "tyre_rename_modified_deleted_label_dot_crop")
     # choose_56(img_path="/home/workspace/data/tyre_1123/images",
     # label_path="/home/workspace/data/tyre_1123/label.txt",

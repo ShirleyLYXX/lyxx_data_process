@@ -2,8 +2,10 @@ import os
 import json
 from tqdm import tqdm
 
-json_path = "/home/workspace/lyxx_data_process/tyre_rename_modified_deleted_label/"
-txt_path = "/home/workspace/lyxx_data_process/tyre_rename_modified_deleted_label/labelTxt/"
+# json_path = "/home/workspace/lyxx_data_process/tyre_rename_modified_deleted_label/"
+# txt_path = "/home/workspace/lyxx_data_process/tyre_rename_modified_deleted_label/labelTxt/"
+json_path = "/home/workspace/lyxx_data_process/final_test_11tire_1207/"
+txt_path = "/home/workspace/lyxx_data_process/final_test_11tire_1207/labelTxt/"
 if not os.path.exists(txt_path):
     os.mkdir(txt_path)
 jsons = os.listdir(json_path)
